@@ -984,7 +984,7 @@ test "ZirOp: tag count meets §4.2 baseline" {
     // + Phase 3-4 reserved + JIT pseudo-ops). Treat 250 as a
     // conservative floor — the assertion guards against a future
     // accidental deletion of a swath of tags.
-    const fields = @typeInfo(ZirOp).@"enum".fields;
+    const fields = @typeInfo(ZirOp).@"enum".field_names;
     try std.testing.expect(fields.len >= 250);
 }
 

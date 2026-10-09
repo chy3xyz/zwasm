@@ -298,7 +298,7 @@ pub const Filestat = extern struct {
     dev: Device,
     ino: Inode,
     filetype: Filetype,
-    _pad: [7]u8 = .{0} ** 7,
+    _pad: [7]u8 = @splat(0),
     nlink: Linkcount,
     size: Filesize,
     atim: Timestamp,
@@ -312,7 +312,7 @@ pub const Filestat = extern struct {
 /// the name itself. Size: 1 + 3 pad + 4 = 8 bytes.
 pub const Prestat = extern struct {
     pr_type: PreopenType,
-    _pad: [3]u8 = .{0} ** 3,
+    _pad: [3]u8 = @splat(0),
     pr_name_len: Size,
 };
 

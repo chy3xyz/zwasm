@@ -1472,7 +1472,7 @@ fn canonIsByValueBlob(t: canon.CanonType) bool {
 /// to `defineFuncRaw`. Every flat-scalar/string/list boundary flattens to all-i32
 /// core words, so one static all-i32 array serves them all — no per-boundary
 /// allocation (D-305). Sized to the linker's raw-arity cap.
-const boundary_core_i32: [marshal.raw_max_words]zir.ValType = .{.i32} ** marshal.raw_max_words;
+const boundary_core_i32: [marshal.raw_max_words]zir.ValType = @splat(.i32);
 
 /// The resolved boundary shape: whether the func flattens to the all-i32 core
 /// signature the generic trampoline marshals, and its flattened param word count.

@@ -93,7 +93,7 @@ pub fn parse(alloc: Allocator, input: []const u8) Error!Module {
 
     var pos: usize = 8;
     var last_known_order: u8 = 0;
-    var seen = [_]bool{false} ** 14;
+    var seen: [14]bool = @splat(false);
 
     while (pos < input.len) {
         const section_start = pos;

@@ -90,9 +90,9 @@ pub fn validateOpModule(comptime mod: type) void {
             @compileError("per-op file missing `pub const handlers = .{ .validate, .lower, .interp };`");
         }
         const H = @TypeOf(mod.handlers);
-        for (@typeInfo(IRAxis).@"enum".fields) |axis_field| {
-            if (!@hasField(H, axis_field.name)) {
-                @compileError("per-op file '" ++ @tagName(mod.op_tag) ++ "' missing handler `." ++ axis_field.name ++ "` in `pub const handlers`");
+        for (@typeInfo(IRAxis).@"enum".field_names) |axis_name| {
+            if (!@hasField(H, axis_name)) {
+                @compileError("per-op file '" ++ @tagName(mod.op_tag) ++ "' missing handler `." ++ axis_name ++ "` in `pub const handlers`");
             }
         }
     }
@@ -184,7 +184,7 @@ pub fn migratedOpCount() usize {
 
 /// Count of ZirOp tags (canonical authoritative number; ~581 at Phase 9).
 pub fn zirOpTagCount() usize {
-    return @typeInfo(ZirOp).@"enum".fields.len;
+    return @typeInfo(ZirOp).@"enum".field_names.len;
 }
 
 /// Whether the substrate migration is complete (= every ZirOp tag has
@@ -428,7 +428,7 @@ test "opModuleFor returns null for not-yet-migrated tags" {
 }
 
 test "IRAxis enum has exactly 3 variants per ADR-0074 (Zone 1 IR-axes only)" {
-    try std.testing.expectEqual(@as(usize, 3), @typeInfo(IRAxis).@"enum".fields.len);
+    try std.testing.expectEqual(@as(usize, 3), @typeInfo(IRAxis).@"enum".field_names.len);
 }
 
 test "dispatcherOver returns UnsupportedOpForBuildLevel for build-filtered op tag (Phase 10 prep)" {
@@ -498,8 +498,8 @@ test "populateDispatchTable is callable + no-op for current stubs" {
 }
 
 test "dispatcher returns a callable function value per IR-axis" {
-    inline for (@typeInfo(IRAxis).@"enum".fields) |f| {
-        const axis: IRAxis = @enumFromInt(f.value);
+    inline for (@typeInfo(IRAxis).@"enum".field_values) |f_value| {
+        const axis: IRAxis = @enumFromInt(f_value);
         const fn_ref = dispatcher(axis);
         _ = fn_ref;
     }

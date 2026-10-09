@@ -420,7 +420,13 @@ pub const TcpSocket = struct {
     pub fn recv(self: *TcpSocket, io: std.Io, buf: []u8) !usize {
         const stream = self.connectedStream() orelse return error.InvalidState;
         var bufs = [_][]u8{buf};
-        return io.vtable.netRead(io.userdata, stream.socket.handle, &bufs);
+        // NB: std.Io.net.Stream.read (0.17.0) is broken — destructure arity
+        // mismatch inside std; call the Io operation directly.
+        const result = try (try io.operate(.{ .net_read = .{
+            .socket_handle = stream.socket.handle,
+            .data = &bufs,
+        } })).net_read;
+        return result.data_len;
     }
 
     /// Socket-backed output-stream `write` (one-shot).
@@ -428,7 +434,12 @@ pub const TcpSocket = struct {
         const stream = self.connectedStream() orelse return error.InvalidState;
         if (builtin.os.tag == .windows) return winAfdSend(stream.socket.handle, bytes);
         const data = [_][]const u8{bytes};
-        return io.vtable.netWrite(io.userdata, stream.socket.handle, "", &data, 1);
+        return try (try io.operate(.{ .net_write = .{
+            .socket_handle = stream.socket.handle,
+            .header = "",
+            .data = &data,
+            .splat = 1,
+        } })).net_write;
     }
 
     /// Readiness for the poll(2)-honest pollable (ADR-0180): is the
@@ -571,7 +582,12 @@ pub const UdpSocket = struct {
         if (bytes.len > max_payload) return error.MessageOversize;
         if (self.os_connected) {
             const data = [_][]const u8{bytes};
-            _ = try io.vtable.netWrite(io.userdata, self.socket.?.handle, "", &data, 1);
+            _ = try (try io.operate(.{ .net_write = .{
+                .socket_handle = self.socket.?.handle,
+                .header = "",
+                .data = &data,
+                .splat = 1,
+            } })).net_write;
             return;
         }
         try self.ensureBound(io);
@@ -1068,12 +1084,20 @@ test "tcp client lifecycle: create → connect → echo against a loopback liste
     try testing.expectEqual(@as(usize, 4), try client.send(io, "ping"));
     var srv_buf: [16]u8 = undefined;
     var srv_bufs = [_][]u8{&srv_buf};
-    const got = try io.vtable.netRead(io.userdata, conn.socket.handle, &srv_bufs);
+    const got = (try (try io.operate(.{ .net_read = .{
+        .socket_handle = conn.socket.handle,
+        .data = &srv_bufs,
+    } })).net_read).data_len;
     try testing.expectEqualStrings("ping", srv_buf[0..got]);
 
     // server → client; readiness flips the client's POLL.IN pollable.
     const reply = [_][]const u8{"pong"};
-    _ = try io.vtable.netWrite(io.userdata, conn.socket.handle, "", &reply, 1);
+    _ = try (try io.operate(.{ .net_write = .{
+        .socket_handle = conn.socket.handle,
+        .header = "",
+        .data = &reply,
+        .splat = 1,
+    } })).net_write;
     var attempts: u32 = 0;
     while (!(try client.ready(POLL_IN)) and attempts < 500) : (attempts += 1) {
         try io.sleep(.{ .nanoseconds = 2 * std.time.ns_per_ms }, .awake);
