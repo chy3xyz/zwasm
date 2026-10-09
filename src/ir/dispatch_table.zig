@@ -78,7 +78,7 @@ test "DispatchTable: per-op slot can be set and read back" {
         }
     };
     var t = DispatchTable.init();
-    const idx = @intFromEnum(ZirOp.@"i32.add");
+    const idx = @backingInt(ZirOp.@"i32.add");
     t.parsers[idx] = Stub.parse;
     t.interp[idx] = Stub.interp;
     t.jit_arm64[idx] = Stub.emit;
@@ -88,6 +88,6 @@ test "DispatchTable: per-op slot can be set and read back" {
     try std.testing.expect(t.jit_arm64[idx] != null);
     try std.testing.expect(t.jit_x86[idx] != null);
     // A neighbouring slot stays null.
-    const other = @intFromEnum(ZirOp.@"i32.sub");
+    const other = @backingInt(ZirOp.@"i32.sub");
     try std.testing.expect(t.parsers[other] == null);
 }

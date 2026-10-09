@@ -88,7 +88,7 @@ comptime {
 /// runtime since the comptime block above guards against
 /// in-tree drift).
 pub fn info(class: RegClass) ?RegClassInfo {
-    const idx = @intFromEnum(class);
+    const idx = @backingInt(class);
     if (idx >= info_table.len) return null;
     return info_table[idx];
 }
@@ -101,7 +101,7 @@ const testing = std.testing;
 
 test "info: every named RegClass variant resolves" {
     inline for (@typeInfo(RegClass).@"enum".field_names, @typeInfo(RegClass).@"enum".field_values) |f_name, f_value| {
-        const class: RegClass = @enumFromInt(f_value);
+        const class: RegClass = @fromBackingInt(@intCast(f_value));
         const got = info(class) orelse {
             std.debug.print("missing info for variant {s}\n", .{f_name});
             return error.MissingInfo;
@@ -123,7 +123,7 @@ test "info: special-cache flag set exactly for the three *_special variants" {
 test "info: SIMD class is the only 128-bit width" {
     var simd_count: u8 = 0;
     inline for (@typeInfo(RegClass).@"enum".field_values) |f_value| {
-        const got = info(@enumFromInt(f_value)).?;
+        const got = info(@fromBackingInt(@intCast(f_value))).?;
         if (got.width_bits == 128) simd_count += 1;
     }
     try testing.expectEqual(@as(u8, 1), simd_count);

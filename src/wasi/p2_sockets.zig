@@ -808,7 +808,7 @@ fn afdPollOnce(handle: net.Socket.Handle, interest: i16) !bool {
         .TIMEOUT => return false, // nothing ready within the zero timeout
         else => {
             // D-319 probe diagnostic: name the NTSTATUS on failure.
-            std.log.scoped(.zwasm_sockets).warn("IOCTL_AFD_POLL failed: NTSTATUS=0x{x} (handle=0x{x}, want=0x{x})", .{ @intFromEnum(status), @intFromPtr(handle), want });
+            std.log.scoped(.zwasm_sockets).warn("IOCTL_AFD_POLL failed: NTSTATUS=0x{x} (handle=0x{x}, want=0x{x})", .{ @backingInt(status), @intFromPtr(handle), want });
             return error.Unexpected;
         },
     }
@@ -833,7 +833,7 @@ fn afdPollOnce(handle: net.Socket.Handle, interest: i16) !bool {
 
 /// AFD BIND ShareType UNIQUE (0): the plain no-REUSEADDR winsock bind —
 /// live-port rebind rejected, TIME_WAIT rebind allowed (windows default).
-const AFD_SHARE_UNIQUE: win.AFD.BIND_INFO.MODE = @enumFromInt(0);
+const AFD_SHARE_UNIQUE: win.AFD.BIND_INFO.MODE = @fromBackingInt(@intCast(0));
 
 const WinAfdResult = struct { status: win.NTSTATUS, information: usize };
 
@@ -1399,10 +1399,10 @@ test "resolve-addresses core: literals parse locally, invalid names reject, loca
 }
 
 test "errorToCode: spec ordinals pinned" {
-    try testing.expectEqual(@as(u8, 8), @intFromEnum(ErrorCode.would_block));
-    try testing.expectEqual(@as(u8, 9), @intFromEnum(ErrorCode.invalid_state));
-    try testing.expectEqual(@as(u8, 12), @intFromEnum(errorToCode(error.AddressInUse)));
-    try testing.expectEqual(@as(u8, 14), @intFromEnum(errorToCode(error.ConnectionRefused)));
-    try testing.expectEqual(@as(u8, 20), @intFromEnum(ErrorCode.permanent_resolver_failure));
+    try testing.expectEqual(@as(u8, 8), @backingInt(ErrorCode.would_block));
+    try testing.expectEqual(@as(u8, 9), @backingInt(ErrorCode.invalid_state));
+    try testing.expectEqual(@as(u8, 12), @backingInt(errorToCode(error.AddressInUse)));
+    try testing.expectEqual(@as(u8, 14), @backingInt(errorToCode(error.ConnectionRefused)));
+    try testing.expectEqual(@as(u8, 20), @backingInt(ErrorCode.permanent_resolver_failure));
     try testing.expectEqual(ErrorCode.unknown, errorToCode(error.Unexpected));
 }

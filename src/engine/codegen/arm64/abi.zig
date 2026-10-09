@@ -276,10 +276,10 @@ const zir_op_count = @typeInfo(zir.ZirOp).@"enum".field_names.len;
 /// `validateRegallocOpScratchReservation` check).
 pub const op_scratch_reservation_table: [zir_op_count][]const u16 = blk: {
     var t: [zir_op_count][]const u16 = @splat(&.{});
-    t[@intFromEnum(zir.ZirOp.@"table.fill")] = &bulk_handler_reservation;
-    t[@intFromEnum(zir.ZirOp.@"table.copy")] = &bulk_handler_reservation;
-    t[@intFromEnum(zir.ZirOp.@"table.init")] = &bulk_handler_reservation;
-    t[@intFromEnum(zir.ZirOp.@"memory.init")] = &bulk_handler_reservation;
+    t[@backingInt(zir.ZirOp.@"table.fill")] = &bulk_handler_reservation;
+    t[@backingInt(zir.ZirOp.@"table.copy")] = &bulk_handler_reservation;
+    t[@backingInt(zir.ZirOp.@"table.init")] = &bulk_handler_reservation;
+    t[@backingInt(zir.ZirOp.@"memory.init")] = &bulk_handler_reservation;
     break :blk t;
 };
 
@@ -297,7 +297,7 @@ comptime {
 /// Pass `&opScratchReservation` as the 4th argument of
 /// `computeWith` to enable the arm64 fence.
 pub fn opScratchReservation(op: zir.ZirOp) []const u16 {
-    const idx = @intFromEnum(op);
+    const idx = @backingInt(op);
     if (idx >= zir_op_count) return &.{};
     return op_scratch_reservation_table[idx];
 }

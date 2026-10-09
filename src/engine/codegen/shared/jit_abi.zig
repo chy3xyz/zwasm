@@ -50,8 +50,8 @@ const build_options = @import("build_options");
 // comptime-false block go un-analysed in sub-v3 builds, so the address points
 // at a bare `@panic` stub and the GC code DCEs. Sub-v3 builds can never emit a
 // GC / subtyping op (the validator rejects them), so the stub is unreachable.
-const wasm_v3_plus = @intFromEnum(build_options.wasm_level) >=
-    @intFromEnum(@TypeOf(build_options.wasm_level).v3_0);
+const wasm_v3_plus = @backingInt(build_options.wasm_level) >=
+    @backingInt(@TypeOf(build_options.wasm_level).v3_0);
 
 /// `@sizeOf(FuncEntity)` — exposed for JIT emit's `ref.func`
 /// recipe (`ADD ptr, ptr, #(idx * func_entity_size)`). Comptime

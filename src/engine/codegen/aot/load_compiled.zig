@@ -336,7 +336,7 @@ pub fn deserializeToCompiledWasm(allocator: Allocator, cwasm_bytes: []const u8) 
                 .pc_end = e.pc_end,
                 .tag_idx = if (e.tag_idx == format.eh_tag_none) null else e.tag_idx,
                 .landing_pad_pc = e.landing_pad_pc,
-                .kind = @enumFromInt(e.kind),
+                .kind = @fromBackingInt(@intCast(e.kind)),
             };
         }
         break :blk out;

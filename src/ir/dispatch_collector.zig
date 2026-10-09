@@ -108,7 +108,7 @@ pub fn enabledByBuild(comptime mod: type) bool {
     comptime {
         if (@hasDecl(mod, "wasm_level")) {
             if (mod.wasm_level) |lvl| {
-                if (@intFromEnum(lvl) > @intFromEnum(build_options.wasm_level)) {
+                if (@backingInt(lvl) > @backingInt(build_options.wasm_level)) {
                     return false;
                 }
             }
@@ -119,8 +119,8 @@ pub fn enabledByBuild(comptime mod: type) bool {
                 // an op needing a higher level than the build provides is
                 // filtered out. The `both` wildcard was dropped — the tier
                 // ordering subsumes it.
-                const cur = @intFromEnum(build_options.wasi_level);
-                const need = @intFromEnum(lvl);
+                const cur = @backingInt(build_options.wasi_level);
+                const need = @backingInt(lvl);
                 if (need > cur) {
                     return false;
                 }
@@ -242,7 +242,7 @@ pub fn populateDispatchTable(table: *@import("dispatch_table.zig").DispatchTable
         if (comptime @TypeOf(handler) == InterpFn) {
             // Install; per-op handler is real, matches the runtime
             // dispatch signature.
-            table.interp[@intFromEnum(op_mod.op_tag)] = handler;
+            table.interp[@backingInt(op_mod.op_tag)] = handler;
         }
         // Else: per-op handler is still a stub. Skip installation;
         // legacy interp slot retains authority.
@@ -494,12 +494,12 @@ test "populateDispatchTable is callable + no-op for current stubs" {
     // null after this call.
     var table = @import("dispatch_table.zig").DispatchTable.init();
     populateDispatchTable(&table);
-    try std.testing.expect(table.interp[@intFromEnum(ZirOp.@"i32.add")] == null);
+    try std.testing.expect(table.interp[@backingInt(ZirOp.@"i32.add")] == null);
 }
 
 test "dispatcher returns a callable function value per IR-axis" {
     inline for (@typeInfo(IRAxis).@"enum".field_values) |f_value| {
-        const axis: IRAxis = @enumFromInt(f_value);
+        const axis: IRAxis = @fromBackingInt(@intCast(f_value));
         const fn_ref = dispatcher(axis);
         _ = fn_ref;
     }

@@ -912,7 +912,7 @@ fn installBoundaryTrampoline(
 /// Canonical ABI (`CanonicalABI.md` `Subtask.State`). RETURNED=2 means the
 /// callee resolved within the call (a synchronous completion); the minimal c-2b
 /// fixture's callee EXITs immediately, so the lowered call returns RETURNED.
-const SUBTASK_RETURNED: u32 = @intFromEnum(async_mod.SubtaskState.returned);
+const SUBTASK_RETURNED: u32 = @backingInt(async_mod.SubtaskState.returned);
 
 /// The async boundary trampoline's flattened core signature for a NO-RESULT
 /// async import (`canon lower … async` of `func()`): `() -> i32`, returning the

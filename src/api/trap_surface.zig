@@ -224,7 +224,7 @@ pub export fn wasm_trap_new(s: ?*wasm_c_api.Store, message: ?*const wasm_c_api.B
 /// Values = the `TrapKind` enum (documented in zwasm.h); -1 on null.
 pub export fn zwasm_trap_kind(t: ?*const Trap) callconv(.c) i32 {
     const trap = t orelse return -1;
-    return @intCast(@intFromEnum(trap.kind));
+    return @intCast(@backingInt(trap.kind));
 }
 
 /// `wasm_trap_delete(*Trap)` — free a Trap returned by any path

@@ -38,7 +38,7 @@ pub fn step(
     table: *const DispatchTable,
     instr: *const ZirInstr,
 ) anyerror!void {
-    const idx = @intFromEnum(instr.op);
+    const idx = @backingInt(instr.op);
     if (idx >= dispatch_table.N_OPS) return Trap.Unreachable;
     const handler = table.interp[idx] orelse return Trap.Unreachable;
     const saved_pc = if (rt.frame_len > 0) rt.currentFrame().pc else 0;
@@ -197,8 +197,8 @@ const StubHandlers = struct {
 
 fn buildSmokeTable() DispatchTable {
     var t = DispatchTable.init();
-    t.interp[@intFromEnum(ZirOp.nop)] = StubHandlers.nop;
-    t.interp[@intFromEnum(ZirOp.@"i32.const")] = StubHandlers.pushI32Const;
+    t.interp[@backingInt(ZirOp.nop)] = StubHandlers.nop;
+    t.interp[@backingInt(ZirOp.@"i32.const")] = StubHandlers.pushI32Const;
     return t;
 }
 
@@ -295,7 +295,7 @@ test "run: bubbles handler trap and stops iteration" {
     var rt = Runtime.init(testing.allocator);
     defer rt.deinit();
     var t = DispatchTable.init();
-    t.interp[@intFromEnum(ZirOp.@"i32.const")] = StubHandlers.pushI32Const;
+    t.interp[@backingInt(ZirOp.@"i32.const")] = StubHandlers.pushI32Const;
     // .nop slot left null → step returns Trap.Unreachable on the second instr.
 
     const instrs = [_]ZirInstr{
