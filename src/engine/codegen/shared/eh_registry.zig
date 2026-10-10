@@ -29,7 +29,7 @@ const exception_table = @import("exception_table.zig");
 const unwind = @import("unwind.zig");
 
 const CAP = 64;
-var rts: [CAP]?*jit_abi.JitRuntime = .{null} ** CAP;
+var rts: [CAP]?*jit_abi.JitRuntime = @splat(null);
 
 /// Registered bridge-thunk arena address ranges (D-238 / ADR-0185 (b)).
 /// A cross-module bridge thunk lives in the IMPORTER instance's
@@ -39,7 +39,7 @@ var rts: [CAP]?*jit_abi.JitRuntime = .{null} ** CAP;
 /// arenas are registered globally here (the importer's arena is not the
 /// throwing instance's view).
 const ThunkRange = struct { start: usize, len: usize };
-var thunk_ranges: [CAP]?ThunkRange = .{null} ** CAP;
+var thunk_ranges: [CAP]?ThunkRange = @splat(null);
 
 /// Register a live instance (idempotent). Address must be stable for
 /// the registered lifetime (heap-pinned per D-225's exporter contract).
@@ -113,8 +113,8 @@ pub fn isCodeAddr(abs_pc: usize) bool {
 
 /// Drop all registrations (test isolation).
 pub fn reset() void {
-    rts = .{null} ** CAP;
-    thunk_ranges = .{null} ** CAP;
+    rts = @splat(null);
+    thunk_ranges = @splat(null);
 }
 
 fn cmapFor(rt: *const jit_abi.JitRuntime) code_map_mod.CodeMap {

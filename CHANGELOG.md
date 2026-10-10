@@ -8,6 +8,33 @@ zwasm v2 is a ground-up redesign of v1. **v1 ABI compatibility is out of
 scope** — see [`docs/migration_v1_to_v2.md`](docs/migration_v1_to_v2.md).
 SemVer compatibility guarantees start at the first stable `v2.0.0` tag.
 
+## [2.5.1] - 2026-10-10
+
+### Changed
+
+- **Zig 0.17.0 toolchain adaptation** (`minimum_zig_version` bumped
+  0.16.0 → 0.17.0; `flake.nix` + all CI workflow pins updated). Codebase
+  migrations for 0.17 language/std changes: `**` array repetition removed
+  by the language → `@splat` / explicit literals (~60 sites);
+  `std.builtin.Type` layout change (`Enum.fields` → `field_names` /
+  `field_values`, `Fn.params` → `param_types`, `ErrorSet` nullability
+  moved to `error_names`); `std.meta.fields` removed → `@typeInfo` walks;
+  `OptimizeMode`/`.ReleaseSafe`-style spellings → `Optimize`/`.safe`;
+  `Build.args` / `Build.pathFromRoot` removed → `Run.addPassthruArgs` /
+  local `pathResolve` helper; `std.Io.VTable.net{Read,Write}` replaced
+  by `Io.operate(.{ .net_read / .net_write })` (the 0.17.0 std
+  `net.Stream.read` wrapper itself is broken — destructure arity — so
+  the Io operation is called directly). The zlinter build dep moves to
+  its `0.17.x` branch (the 0.16.x branch does not compile under 0.17).
+  NB: zlinter 0.17.x's `no_unused` is stricter than 0.16.x (136 vs 1
+  warnings); the `lint --max-warnings 0` strict gate was already red
+  at the 0.16 baseline (1 warning), so the warning sweep is deferred
+  to the cleanliness-sweep front.
+- **Known issue (upstream)**: `-Dstrip=true` crashes the 0.17.0
+  compiler (SEGV in LLVM emit with `-fstrip`) when building the two
+  spec-assert runner exes; the main CLI and library strip fine. The
+  flag is opt-in and not part of any gate.
+
 ## [2.5.0] - 2026-08-11
 
 ### Added

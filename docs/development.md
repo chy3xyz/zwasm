@@ -5,7 +5,7 @@ zwasm on a fresh machine. If any other document disagrees with this one about
 the development environment, this one wins (design/architecture questions are
 owned by [`.dev/ROADMAP.md`](../.dev/ROADMAP.md)).
 
-**The short version: you need Zig 0.16.0. Nothing else.** The authoritative
+**The short version: you need Zig 0.17.0. Nothing else.** The authoritative
 test gate is GitHub CI, which runs the 3-OS matrix on every pull request
 (macOS + Linux blocking, Windows advisory) — you do not need multiple
 machines, SSH hosts, Nix, or any maintainer-specific setup to contribute.
@@ -21,7 +21,7 @@ zig build test-all       # every enabled test layer (what CI runs)
 zig fmt src/             # format before committing
 ```
 
-`zig version` must print `0.16.0` — the project pins it exactly
+`zig version` must print `0.17.0` — the project pins it exactly
 (`.github/versions.lock`, `flake.nix`). Get it from
 [ziglang.org/download](https://ziglang.org/download/) or via the Nix shell
 below.
@@ -30,7 +30,7 @@ below.
 
 | Tool | Status | Used for |
 |---|---|---|
-| Zig 0.16.0 (exact) | **required** | everything |
+| Zig 0.17.0 (exact) | **required** | everything |
 | git | **required** | everything |
 | [wasmtime](https://wasmtime.dev/) | optional | differential oracle in some suites — absent = those comparisons **skip**, never fail |
 | Nix (flakes) | optional | reproducible dev shell (`nix develop`), fixture regeneration shells |

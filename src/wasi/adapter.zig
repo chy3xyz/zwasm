@@ -947,7 +947,7 @@ test "classify: cli/environment + terminal + check-write (E2)" {
 test "D-307: errno → P2 filesystem error-code ordinals" {
     // Spec-pinned ordinals (wasi:filesystem/types error-code declaration order).
     try testing.expectEqual(P2ErrorCode.no_entry, errnoToP2ErrorCode(.noent));
-    try testing.expectEqual(@as(u8, 20), @intFromEnum(errnoToP2ErrorCode(.noent)));
+    try testing.expectEqual(@as(u8, 20), @backingInt(errnoToP2ErrorCode(.noent)));
     try testing.expectEqual(P2ErrorCode.access, errnoToP2ErrorCode(.acces));
     try testing.expectEqual(P2ErrorCode.bad_descriptor, errnoToP2ErrorCode(.badf));
     try testing.expectEqual(P2ErrorCode.exist, errnoToP2ErrorCode(.exist));

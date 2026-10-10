@@ -1333,11 +1333,21 @@ fn tcpEchoServerOnce(io: std.Io, server: *std.Io.net.Server) void {
     defer conn.close(io);
     var buf: [16]u8 = undefined;
     var bufs = [_][]u8{&buf};
-    const n = io.vtable.netRead(io.userdata, conn.socket.handle, &bufs) catch return;
+    const read_op = io.operate(.{ .net_read = .{
+        .socket_handle = conn.socket.handle,
+        .data = &bufs,
+    } }) catch return;
+    const n = (read_op.net_read catch return).data_len;
     var reply_buf: [32]u8 = undefined;
     const reply = std.fmt.bufPrint(&reply_buf, "pong-{s}", .{buf[0..n]}) catch return;
     const data = [_][]const u8{reply};
-    _ = io.vtable.netWrite(io.userdata, conn.socket.handle, "", &data, 1) catch return;
+    const write_op = io.operate(.{ .net_write = .{
+        .socket_handle = conn.socket.handle,
+        .header = "",
+        .data = &data,
+        .splat = 1,
+    } }) catch return;
+    _ = write_op.net_write catch return;
 }
 
 test "ADR-0180: a real rust wasip2 TCP client connects + echoes through wasi:sockets" {
@@ -1388,13 +1398,23 @@ fn tcpClientOnce(io: std.Io, port: u16) void {
     } else return;
     defer stream.close(io);
     const data = [_][]const u8{"ping"};
-    _ = io.vtable.netWrite(io.userdata, stream.socket.handle, "", &data, 1) catch return;
+    const op_result = io.operate(.{ .net_write = .{
+        .socket_handle = stream.socket.handle,
+        .header = "",
+        .data = &data,
+        .splat = 1,
+    } }) catch return;
+    _ = op_result.net_write catch return;
     // Read until the guest's full "ping-ack" reply arrived (2 writes).
     var buf: [16]u8 = undefined;
     var total: usize = 0;
     while (total < 8) {
         var bufs = [_][]u8{buf[total..]};
-        const n = io.vtable.netRead(io.userdata, stream.socket.handle, &bufs) catch return;
+        const read_op = io.operate(.{ .net_read = .{
+            .socket_handle = stream.socket.handle,
+            .data = &bufs,
+        } }) catch return;
+        const n = (read_op.net_read catch return).data_len;
         if (n == 0) return;
         total += n;
     }
@@ -1830,7 +1850,7 @@ test "ADR-0205 A: official wasip3 binary decodes the async-support canon builtin
 
     // The wit-bindgen async runtime imports the full builtin set; decode must
     // surface each (previously Error.UnsupportedCanon killed the whole binary).
-    var seen = [_]bool{false} ** 6; // task_cancel, subtask_cancel, subtask_drop, ctx_get, ctx_set, ws_poll
+    var seen: [6]bool = @splat(false); // task_cancel, subtask_cancel, subtask_drop, ctx_get, ctx_set, ws_poll
     var async_lowers: usize = 0;
     for (info.canons.items) |c| switch (c) {
         .task_cancel => seen[0] = true,

@@ -215,7 +215,7 @@ pub fn pollOneoff(
     var i: u32 = 0;
     while (i < nsubscriptions) : (i += 1) {
         const base = in_ptr + i * SUB_SIZE;
-        if (mem[base + 8] != @intFromEnum(p1.EventType.clock)) return .notsup;
+        if (mem[base + 8] != @backingInt(p1.EventType.clock)) return .notsup;
         const userdata = std.mem.readInt(u64, mem[base..][0..8], .little);
         const clock_id = std.mem.readInt(u32, mem[base + 16 ..][0..4], .little);
         const timeout_ns = std.mem.readInt(u64, mem[base + 24 ..][0..8], .little);
@@ -247,7 +247,7 @@ pub fn pollOneoff(
     // One clock event: userdata echoed, error=success(0), type=clock, rest zero.
     @memset(mem[out_ptr .. out_ptr + EVT_SIZE], 0);
     std.mem.writeInt(u64, mem[out_ptr..][0..8], best_userdata, .little);
-    mem[out_ptr + 10] = @intFromEnum(p1.EventType.clock);
+    mem[out_ptr + 10] = @backingInt(p1.EventType.clock);
     return writeU32LE(mem, nevents_ptr, 1);
 }
 
@@ -391,7 +391,7 @@ test "pollOneoff: a clock subscription fires + writes one event" {
     // 48-byte subscription @0; 32-byte event out @48; nevents @80.
     var mem: [128]u8 = @splat(0);
     std.mem.writeInt(u64, mem[0..8], 0xCAFE, .little); // userdata @0
-    mem[8] = @intFromEnum(p1.EventType.clock); // tag @8 = clock
+    mem[8] = @backingInt(p1.EventType.clock); // tag @8 = clock
     std.mem.writeInt(u32, mem[16..20], 1, .little); // clock_id @16 = monotonic
     std.mem.writeInt(u64, mem[24..32], 0, .little); // timeout @24 = 0 (relative → immediate)
     // flags @40 = 0 (relative)
@@ -400,7 +400,7 @@ test "pollOneoff: a clock subscription fires + writes one event" {
     try testing.expectEqual(@as(u32, 1), std.mem.readInt(u32, mem[80..84], .little)); // nevents
     try testing.expectEqual(@as(u64, 0xCAFE), std.mem.readInt(u64, mem[48..56], .little)); // event.userdata
     try testing.expectEqual(@as(u16, 0), std.mem.readInt(u16, mem[56..58], .little)); // event.error = success
-    try testing.expectEqual(@as(u8, @intFromEnum(p1.EventType.clock)), mem[58]); // event.type @ 48+10
+    try testing.expectEqual(@as(u8, @backingInt(p1.EventType.clock)), mem[58]); // event.type @ 48+10
 }
 
 test "pollOneoff: a non-clock (fd) subscription is notsup" {
@@ -408,6 +408,6 @@ test "pollOneoff: a non-clock (fd) subscription is notsup" {
     defer h.deinit();
     h.io = testing.io;
     var mem: [128]u8 = @splat(0);
-    mem[8] = @intFromEnum(p1.EventType.fd_read); // tag @8 = fd_read
+    mem[8] = @backingInt(p1.EventType.fd_read); // tag @8 = fd_read
     try testing.expectEqual(p1.Errno.notsup, pollOneoff(&h, &mem, 0, 48, 1, 80));
 }

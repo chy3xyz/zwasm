@@ -487,7 +487,7 @@ pub const WasiP2Ctx = struct {
             const end = self.streams.get(h) catch continue;
             try sock3UdpReceiveComplete(self, pr.rep, pr.retptr);
             end.subtask_state = .returned;
-            end.setPendingEvent(.{ .code = .subtask, .index = h, .payload = @intFromEnum(async_mod.SubtaskState.returned) });
+            end.setPendingEvent(.{ .code = .subtask, .index = h, .payload = @backingInt(async_mod.SubtaskState.returned) });
             _ = self.blocked_udp_receives.remove(h);
             progressed = true;
         }
@@ -1095,7 +1095,7 @@ fn p2DescriptorStatAt(caller: *Caller, self_handle: u32, path_flags: u32, path_p
 /// descriptor methods).
 fn writeP1Err(mem: Memory, retptr: u32, off: u32, errno: wasi_p1.Errno) WasiP2Error!void {
     try mem.write(retptr, @as(u8, 1));
-    try mem.write(retptr + off, @intFromEnum(adapter.errnoToP2ErrorCode(errno)));
+    try mem.write(retptr + off, @backingInt(adapter.errnoToP2ErrorCode(errno)));
 }
 
 /// Store a `result<_, error-code>` at `retptr` — disc@0, error-code payload@1
@@ -1263,7 +1263,7 @@ fn p2DirEntryStreamReadEntry(caller: *Caller, self_handle: u32, retptr: u32) Was
         }
         try mem.write(retptr, @as(u8, 0)); // result disc: ok
         try mem.write(retptr + 4, @as(u8, 1)); // option disc: some
-        try mem.write(retptr + 8, filetypeToDescriptorType(@enumFromInt(d_type)));
+        try mem.write(retptr + 8, filetypeToDescriptorType(@fromBackingInt(@intCast(d_type))));
         try mem.write(retptr + 12, name_ptr); // directory-entry.name ptr
         try mem.write(retptr + 16, d_namlen); // directory-entry.name len
         return;
@@ -1567,7 +1567,7 @@ fn decodeIpSocketAddress(disc: u32, p: [11]u32) ?std.Io.net.IpAddress {
 /// payload offset varies with the result's alignment across the tcp methods).
 fn writeSockErr(mem: Memory, retptr: u32, off: u32, e: anyerror) WasiP2Error!void {
     try mem.write(retptr, @as(u8, 1));
-    try mem.write(retptr + off, @intFromEnum(p2sock.errorToCode(e)));
+    try mem.write(retptr + off, @backingInt(p2sock.errorToCode(e)));
 }
 
 /// Store a `result<_, error-code>` for a sockets op at `retptr` (disc@0,
@@ -1757,7 +1757,7 @@ fn p2TcpRemoteAddress(caller: *Caller, self: u32, retptr: u32) WasiP2Error!void 
 fn sockStubWriteErr(caller: *Caller, retptr: u32, comptime off: u32) WasiP2Error!void {
     const mem = try ctxMemory(caller);
     try mem.write(retptr, @as(u8, 1));
-    try mem.write(retptr + off, @intFromEnum(p2sock.ErrorCode.not_supported));
+    try mem.write(retptr + off, @backingInt(p2sock.ErrorCode.not_supported));
 }
 
 fn p2SockStubUnit2(caller: *Caller, _: u32, retptr: u32) WasiP2Error!void {
@@ -1799,7 +1799,7 @@ fn p2SockStubSend(caller: *Caller, _: u32, _: u32, _: u32, retptr: u32) WasiP2Er
 fn fsStubWriteUnsupported(caller: *Caller, retptr: u32, comptime off: u32) WasiP2Error!void {
     const mem = try ctxMemory(caller);
     try mem.write(retptr, @as(u8, 1));
-    try mem.write(retptr + off, @intFromEnum(adapter.P2ErrorCode.unsupported));
+    try mem.write(retptr + off, @backingInt(adapter.P2ErrorCode.unsupported));
 }
 
 fn p2FsStubViaStreamOffset(caller: *Caller, _: u32, _: u64, retptr: u32) WasiP2Error!void {
@@ -2357,7 +2357,7 @@ fn mapAsyncFault(e: WasiP2Error) WasiP2Error {
 /// Packed return of an async-lowered import call (`CanonicalABI.md`
 /// `canon_lower`, async case): `state | (subtask_handle << 4)`; an eager
 /// completion returns bare `RETURNED` with no handle minted.
-const SUBTASK_RETURNED: u32 = @intFromEnum(async_mod.SubtaskState.returned);
+const SUBTASK_RETURNED: u32 = @backingInt(async_mod.SubtaskState.returned);
 
 /// `wasi:clocks/monotonic-clock@0.3.0` `wait-until: async func(when: mark)`
 /// under an async `canon lower` (ADR-0205 phase A). Already-elapsed deadline →
@@ -2387,7 +2387,7 @@ fn p2WaitDeadlineAsync(ctx: *WasiP2Ctx, deadline_ns: u64) WasiP2Error!u32 {
         .subtask_state = .started,
         .deadline_ns = deadline_ns,
     });
-    return @intFromEnum(async_mod.SubtaskState.started) | (h << 4);
+    return @backingInt(async_mod.SubtaskState.started) | (h << 4);
 }
 
 /// The SYNC-lowered form of the async wait funcs (the Canonical ABI lets a
@@ -2432,7 +2432,7 @@ fn p2WaitableSetPollInner(caller: *Caller, set_handle: u32, ptr: u32) WasiP2Erro
     const mem = try ctxMemory(caller);
     try mem.write(ptr, ev.index);
     try mem.write(ptr + 4, ev.payload);
-    return @intFromEnum(ev.code);
+    return @backingInt(ev.code);
 }
 
 /// `canon waitable-set.drop` — remove the set from the table (tearing down its
@@ -3865,7 +3865,7 @@ fn fs3DirStreamRead(ctx: *WasiP2Ctx, state_index: u32, end: *async_mod.StreamFut
             @memcpy(dest, src);
         }
         const rec = ptr + filled * 24;
-        const p1_ft: wasi_p1.Filetype = @enumFromInt(d_type);
+        const p1_ft: wasi_p1.Filetype = @fromBackingInt(@intCast(d_type));
         try writeFs3DescriptorType(mem, rec, p1_ft);
         try mem.write(rec + 16, name_ptr);
         try mem.write(rec + 20, d_namlen);
@@ -3964,7 +3964,7 @@ fn sock3TcpCreate(caller: *Caller, family: u32, retptr: u32) WasiP2Error!void {
     const mem = try ctxMemory(caller);
     if (family > 1) return writeSock3Err(mem, retptr, 4, error.InvalidArgument);
     const idx: u32 = @intCast(ctx.tcp_sockets.items.len);
-    ctx.tcp_sockets.append(ctx.alloc, p2sock.TcpSocket.create(@enumFromInt(family))) catch return WasiP2Error.OutOfMemory;
+    ctx.tcp_sockets.append(ctx.alloc, p2sock.TcpSocket.create(@fromBackingInt(@intCast(family)))) catch return WasiP2Error.OutOfMemory;
     const handle = try ctx.resources.new(WasiP2Ctx.TCP_SOCKET_RT, idx);
     try mem.write(retptr, @as(u8, 0));
     try mem.write(retptr + 4, handle);
@@ -4218,7 +4218,7 @@ fn sock3TcpIsListening(caller: *Caller, self: u32) WasiP2Error!u32 {
 fn sock3TcpFamily(caller: *Caller, self: u32) WasiP2Error!u32 {
     const ctx = caller.data(WasiP2Ctx);
     const sock = try sock3TcpSelf(ctx, self);
-    return @intFromEnum(sock.family);
+    return @backingInt(sock.family);
 }
 
 fn sock3TcpSetBacklog(caller: *Caller, self: u32, value: u64, retptr: u32) WasiP2Error!void {
@@ -4358,7 +4358,7 @@ fn sock3UdpCreate(caller: *Caller, family: u32, retptr: u32) WasiP2Error!void {
     const mem = try ctxMemory(caller);
     if (family > 1) return writeSock3Err(mem, retptr, 4, error.InvalidArgument);
     const idx: u32 = @intCast(ctx.udp_sockets.items.len);
-    ctx.udp_sockets.append(ctx.alloc, p2sock.UdpSocket.create(@enumFromInt(family))) catch return WasiP2Error.OutOfMemory;
+    ctx.udp_sockets.append(ctx.alloc, p2sock.UdpSocket.create(@fromBackingInt(@intCast(family)))) catch return WasiP2Error.OutOfMemory;
     const handle = try ctx.resources.new(WasiP2Ctx.UDP_SOCKET3_RT, idx);
     try mem.write(retptr, @as(u8, 0));
     try mem.write(retptr + 4, handle);
@@ -4498,7 +4498,7 @@ fn sock3UdpReceive(caller: *Caller, self: u32, retptr: u32) WasiP2Error!u32 {
         .subtask_state = .started,
     });
     try ctx.blocked_udp_receives.put(ctx.alloc, h, .{ .rep = rep, .retptr = retptr });
-    return @intFromEnum(async_mod.SubtaskState.started) | (h << 4);
+    return @backingInt(async_mod.SubtaskState.started) | (h << 4);
 }
 
 /// The receive proper: recvfrom into a fresh guest buffer + marshal the
@@ -4808,7 +4808,7 @@ fn http3RequestGetMethod(caller: *Caller, self: u32, retptr: u32) WasiP2Error!vo
             try mem.write(retptr + 4, p);
             try mem.write(retptr + 8, @as(u32, @intCast(s.len)));
         },
-        else => try mem.write(retptr, @as(u8, @intFromEnum(std.meta.activeTag(req.method)))),
+        else => try mem.write(retptr, @as(u8, @backingInt(std.meta.activeTag(req.method)))),
     }
 }
 
@@ -5177,7 +5177,7 @@ fn http3ClientSend(caller: *Caller, request: u32, retptr: u32) WasiP2Error!u32 {
     // so the transferred-end release must be explicit.
     http3DropTransferredEnd(ctx, req.trailers_future);
     req.trailers_future = 0;
-    return @intFromEnum(async_mod.SubtaskState.started) | (h << 4);
+    return @backingInt(async_mod.SubtaskState.started) | (h << 4);
 }
 
 fn ctxHttpRequest(ctx: *WasiP2Ctx, rep: u32) WasiP2Error!*p3http.HttpRequest {
@@ -5233,7 +5233,7 @@ fn http3PerformSend(self: *WasiP2Ctx, pcs: *PendingClientSend) WasiP2Error!void 
             try m.write(retptr + 8, @as(u8, 37));
             try m.write(retptr + 16, @as(u8, 0));
             sub.subtask_state = .returned;
-            sub.setPendingEvent(.{ .code = .subtask, .index = h, .payload = @intFromEnum(async_mod.SubtaskState.returned) });
+            sub.setPendingEvent(.{ .code = .subtask, .index = h, .payload = @backingInt(async_mod.SubtaskState.returned) });
         }
     };
     const sub = try self.streams.get(pcs.subtask);
@@ -5304,7 +5304,7 @@ fn http3PerformSend(self: *WasiP2Ctx, pcs: *PendingClientSend) WasiP2Error!void 
     }
     const resp_idx: u32 = @intCast(self.http_responses.items.len);
     self.http_responses.append(self.alloc, .{
-        .status = @intFromEnum(hresp.head.status),
+        .status = @backingInt(hresp.head.status),
         .headers_rep = fields_idx,
         .contents_stream = contents,
     }) catch return WasiP2Error.OutOfMemory;
@@ -5315,7 +5315,7 @@ fn http3PerformSend(self: *WasiP2Ctx, pcs: *PendingClientSend) WasiP2Error!void 
     // streams table, dangling the `sub` pointer taken at entry.
     const sub2 = try self.streams.get(pcs.subtask);
     sub2.subtask_state = .returned;
-    sub2.setPendingEvent(.{ .code = .subtask, .index = pcs.subtask, .payload = @intFromEnum(async_mod.SubtaskState.returned) });
+    sub2.setPendingEvent(.{ .code = .subtask, .index = pcs.subtask, .payload = @backingInt(async_mod.SubtaskState.returned) });
 }
 
 /// Register a harness capture sink for `shared_id`, draining a write that
@@ -5374,7 +5374,7 @@ fn sock3UdpRemoteAddress(caller: *Caller, self: u32, retptr: u32) WasiP2Error!vo
 fn sock3UdpFamily(caller: *Caller, self: u32) WasiP2Error!u32 {
     const ctx = caller.data(WasiP2Ctx);
     const sock = try sock3UdpSelf(ctx, self);
-    return @intFromEnum(sock.family);
+    return @backingInt(sock.family);
 }
 
 fn sock3UdpHopGet(caller: *Caller, self: u32, retptr: u32) WasiP2Error!void {

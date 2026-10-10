@@ -1,9 +1,9 @@
 # zwasm v2
 
-A from-scratch WebAssembly runtime in Zig 0.16.0.
+A from-scratch WebAssembly runtime in Zig 0.17.0.
 
 [![CI](https://github.com/clojurewasm/zwasm/actions/workflows/ci.yml/badge.svg)](https://github.com/clojurewasm/zwasm/actions/workflows/ci.yml)
-[![Zig](https://img.shields.io/badge/Zig-0.16.0-f7a41d?logo=zig&logoColor=white)](https://ziglang.org/)
+[![Zig](https://img.shields.io/badge/Zig-0.17.0-f7a41d?logo=zig&logoColor=white)](https://ziglang.org/)
 [![WebAssembly 3.0](https://img.shields.io/badge/WebAssembly-3.0-654ff0?logo=webassembly&logoColor=white)](https://webassembly.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/chaploud?logo=githubsponsors&logoColor=white&color=ea4aaa)](https://github.com/sponsors/chaploud)
@@ -194,13 +194,13 @@ zig build test-all     # all enabled test layers
 zig build -Dtarget=x86_64-windows-gnu
 ```
 
-**You only need Zig 0.16.0** — multi-OS verification is handled
+**You only need Zig 0.17.0** — multi-OS verification is handled
 automatically by CI on every pull request. The full development story
 (test layers, optional tools, git hooks, what's maintainer-only) is in
 **[`docs/development.md`](docs/development.md)**; the contribution flow is in
 [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md).
 
-Nix is optional: `nix develop` (or direnv) loads the pinned Zig 0.16.0
+Nix is optional: `nix develop` (or direnv) loads the pinned Zig 0.17.0
 and tool surface (`flake.nix`: hyperfine, wasm-tools, wasmtime, yq-go,
 lldb, nasm).
 
@@ -211,7 +211,7 @@ src/         Zig sources (parse/ validate/ ir/ runtime/ instruction/ feature/
              engine/ interp/ wasi/ api/ cli/ diagnostic/ support/ platform/)
 include/     Public C headers (wasm.h / wasi.h / zwasm.h)
 build.zig    Build script
-flake.nix    Nix dev shell pinned to Zig 0.16.0
+flake.nix    Nix dev shell pinned to Zig 0.17.0
 docs/        Migration guide + design docs
 .dev/        ROADMAP + handover + ADRs + lessons + setup notes
 .claude/     Claude Code settings, skills, rules (auto-loaded)

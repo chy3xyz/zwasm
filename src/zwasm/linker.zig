@@ -298,7 +298,7 @@ pub const Linker = struct {
         user_fn: *const Sig,
     ) !void {
         const fn_info = @typeInfo(Sig).@"fn";
-        if (fn_info.params.len == 0 or (fn_info.params[0].type orelse return error.SignatureMismatch) != *Caller) {
+        if (fn_info.param_types.len == 0 or (fn_info.param_types[0] orelse return error.SignatureMismatch) != *Caller) {
             @compileError("Linker.defineFunc: host fn must take *Caller as first param");
         }
         const Ctx = _marshal.HostFnCtx(Sig);
